@@ -48,7 +48,6 @@ class MarksDirectory:
             with open(file_name, "w") as file:
                 writer = csv.writer(file)
                 for entry in self.entries:
-                    # convert entry to list
                     entry = list(entry.__dict__.values())
                     writer.writerow(entry)
             return True
@@ -66,7 +65,6 @@ class MarksDirectory:
             return False
 
     def update_entry(self, attribute, old_value):
-        # if attribute is not in attributes_list
         if attribute not in self.attributes:
             return None
         entry = self.find_unique(attribute, old_value)

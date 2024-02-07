@@ -1,51 +1,45 @@
-import turtle
+import pygame
+from sys import exit
+
+prefix = "kaooa_package/assets/"
+
+WIDTH, HEIGHT = 800,800
+
+pygame.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Kaooa Game")
+clock = pygame.time.Clock()
+
+boardimage = pygame.image.load(prefix+"board.png").convert_alpha()
+crow_image = pygame.image.load(prefix+"crow.png").convert_alpha()
+vulture_image = pygame.image.load(prefix+"vulture.png").convert_alpha()
+
+BOARD_OFFSET_X = (WIDTH - boardimage.get_width()) // 2
+BOARD_OFFSET_Y = (HEIGHT - boardimage.get_height()) // 2
+
+place_holders = [(398, 87), (100, 291), (321, 298), (478, 298), (696, 292), (277, 416), (522, 416), (399, 497), (191, 623), (602, 619)]
 
 
-def circle(x, y):
-    turtle.penup()
-    turtle.goto(x, y)
-    turtle.pendown()
-    turtle.begin_fill()
-    turtle.circle(20)
-    turtle.end_fill()
+def get_near(x, y):
+    for i in range(len(place_holders)):
+        if ((place_holders[i][0]-x)**2 + (place_holders[i][1]-y)**2)**0.5 < 50:
+            return place_holders[i]
+    return -1
 
+def blit_image(image, x, y):
+    screen.blit(image, (x, y))
 
-def get_mouse_click_coord(x, y):
-    print("Clicked at:", x, y)
-
-
-# Function to exit the game
-def exit_game():
-    turtle.bye()
-
-
-coords = [
-    [0, 397],
-    [-381, 138],
-    [-98, 129],
-    [100, 128],
-    [382, 135],
-    [-158, -20],
-    [158, -21],
-    [0, -127],
-    [-266, -292],
-    [271, -289],
-]
-
-screen = turtle.Screen()
-screen.setup(900, 900)
-# get bg image
-screen.bgpic("kaooa_package/assets/board.png")
-screen.title("Kaooa")
-# screen.onscreenclick(get_mouse_click_coord)
-
-
-for coord in coords:
-    circle(coord[0], coord[1] - 16)
-
-# Register exit key
-screen.onkeypress(exit_game, "q")
-screen.listen()
-
-# Main loop
-turtle.done()
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            x, y = pygame.mouse.get_pos()
+            print(get_near(x, y))
+    screen.blit(boardimage, (BOARD_OFFSET_X, BOARD_OFFSET_Y))
+    for i in place_holders:
+        pygame.draw.circle(screen, (255, 255, 255), i, 25, 3)
+    
+    pygame.display.update()
+    clock.tick(60)

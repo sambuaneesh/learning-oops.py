@@ -29,17 +29,45 @@ def get_near(x, y):
 def blit_image(image, x, y):
     screen.blit(image, (x, y))
 
-while True:
+plots = []
+flag = -1
+player = 0 # 0 for crow, 1 for vulture
+
+crows_left = 7
+vultures_left = 1
+
+while True:    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
-            print(get_near(x, y))
+            # print(get_near(x, y))
+            coord = get_near(x, y)
+            if coord != -1:
+                flag = place_holders.index(coord)
     screen.blit(boardimage, (BOARD_OFFSET_X, BOARD_OFFSET_Y))
     for i in place_holders:
         pygame.draw.circle(screen, (255, 255, 255), i, 25, 3)
+        # blit_image(vulture_image, i[0]-75, i[1]-75)
+    if flag != -1:
+        if player == 0 and crows_left > 0:
+            plots.append([player,place_holders[flag][0]-75, place_holders[flag][1]-75])
+            crows_left -= 1
+            flag = -1
+        elif player == 1 and vultures_left > 0:
+            plots.append([player,place_holders[flag][0]-75, place_holders[flag][1]-75])
+            vultures_left -= 1
+            flag = -1
+        player = (player+1)%2
+        flag = -1
+    
+    for i in plots:
+        if i[0] == 0:
+            blit_image(crow_image, i[1], i[2])
+        else:
+            blit_image(vulture_image, i[1], i[2])
     
     pygame.display.update()
     clock.tick(60)

@@ -8,11 +8,11 @@ class GameBoard:
             PLACE_HOLDERS[1]: [PLACE_HOLDERS[2], PLACE_HOLDERS[5]],
             PLACE_HOLDERS[2]: [PLACE_HOLDERS[0], PLACE_HOLDERS[1], PLACE_HOLDERS[3], PLACE_HOLDERS[5]],
             PLACE_HOLDERS[3]: [PLACE_HOLDERS[0], PLACE_HOLDERS[2], PLACE_HOLDERS[4], PLACE_HOLDERS[6]],
-            PLACE_HOLDERS[4]: [PLACE_HOLDERS[3], PLACE_HOLDERS[7]],
+            PLACE_HOLDERS[4]: [PLACE_HOLDERS[3], PLACE_HOLDERS[6]],
             PLACE_HOLDERS[5]: [PLACE_HOLDERS[1], PLACE_HOLDERS[2], PLACE_HOLDERS[7], PLACE_HOLDERS[8]],
             PLACE_HOLDERS[6]: [PLACE_HOLDERS[3], PLACE_HOLDERS[4], PLACE_HOLDERS[7], PLACE_HOLDERS[9]],
             PLACE_HOLDERS[7]: [PLACE_HOLDERS[5], PLACE_HOLDERS[6], PLACE_HOLDERS[8], PLACE_HOLDERS[9]],
-            PLACE_HOLDERS[8]: [PLACE_HOLDERS[5], PLACE_HOLDERS[6]],
+            PLACE_HOLDERS[8]: [PLACE_HOLDERS[5], PLACE_HOLDERS[7]],
             PLACE_HOLDERS[9]: [PLACE_HOLDERS[6], PLACE_HOLDERS[7]],
         }
         self.jumping_positions = {
@@ -84,7 +84,7 @@ class GameBoard:
 
     def is_win_condition_met(self):
         if captured_crows >= 4:
-            return 1  # Vulture wins
+            return 1 
         if self.is_vulture_trapped():
             return 0 
         return -1 

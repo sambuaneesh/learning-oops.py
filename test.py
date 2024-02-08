@@ -15,6 +15,7 @@ board_image = pygame.image.load(prefix + "board.png").convert_alpha()
 crow_image = pygame.image.load(prefix + "crow.png").convert_alpha()
 vulture_image = pygame.image.load(prefix + "vulture.png").convert_alpha()
 captured_crows = 0
+player = 0
 
 font_base = pygame.font.Font(None, 50)
 font = pygame.font.Font(None, 50)
@@ -42,30 +43,39 @@ class GameBoard:
             PLACE_HOLDERS[0]: [PLACE_HOLDERS[2], PLACE_HOLDERS[3]],
             PLACE_HOLDERS[1]: [PLACE_HOLDERS[2], PLACE_HOLDERS[5]],
             PLACE_HOLDERS[2]: [PLACE_HOLDERS[0], PLACE_HOLDERS[1], PLACE_HOLDERS[3], PLACE_HOLDERS[5]],
-            PLACE_HOLDERS[3]: [PLACE_HOLDERS[0], PLACE_HOLDERS[2], PLACE_HOLDERS[4], PLACE_HOLDERS[7]],
+            PLACE_HOLDERS[3]: [PLACE_HOLDERS[0], PLACE_HOLDERS[2], PLACE_HOLDERS[4], PLACE_HOLDERS[6]],
             PLACE_HOLDERS[4]: [PLACE_HOLDERS[3], PLACE_HOLDERS[7]],
-            PLACE_HOLDERS[5]: [PLACE_HOLDERS[1], PLACE_HOLDERS[2], PLACE_HOLDERS[6], PLACE_HOLDERS[8]],
-            PLACE_HOLDERS[6]: [PLACE_HOLDERS[5], PLACE_HOLDERS[7], PLACE_HOLDERS[8], PLACE_HOLDERS[9]],
-            PLACE_HOLDERS[7]: [PLACE_HOLDERS[3], PLACE_HOLDERS[6], PLACE_HOLDERS[4], PLACE_HOLDERS[9]],
+            PLACE_HOLDERS[5]: [PLACE_HOLDERS[1], PLACE_HOLDERS[2], PLACE_HOLDERS[7], PLACE_HOLDERS[8]],
+            PLACE_HOLDERS[6]: [PLACE_HOLDERS[3], PLACE_HOLDERS[4], PLACE_HOLDERS[7], PLACE_HOLDERS[9]],
+            PLACE_HOLDERS[7]: [PLACE_HOLDERS[5], PLACE_HOLDERS[6], PLACE_HOLDERS[8], PLACE_HOLDERS[9]],
             PLACE_HOLDERS[8]: [PLACE_HOLDERS[5], PLACE_HOLDERS[6]],
             PLACE_HOLDERS[9]: [PLACE_HOLDERS[6], PLACE_HOLDERS[7]],
         }
-        self.axes = [[0,2,5,8],[0,3,7,9],[1,2,3,4],[1,5,6,9],[4,7,6,8]]
+        self.jumping_positions = {
+            PLACE_HOLDERS[0]: [PLACE_HOLDERS[5], PLACE_HOLDERS[6]],
+            PLACE_HOLDERS[1]: [PLACE_HOLDERS[3], PLACE_HOLDERS[7]],
+            PLACE_HOLDERS[2]: [PLACE_HOLDERS[4], PLACE_HOLDERS[8]],
+            PLACE_HOLDERS[3]: [PLACE_HOLDERS[1], PLACE_HOLDERS[9]],
+            PLACE_HOLDERS[4]: [PLACE_HOLDERS[2], PLACE_HOLDERS[7]],
+            PLACE_HOLDERS[5]: [PLACE_HOLDERS[0], PLACE_HOLDERS[9]],
+            PLACE_HOLDERS[6]: [PLACE_HOLDERS[8], PLACE_HOLDERS[0]],
+            PLACE_HOLDERS[7]: [PLACE_HOLDERS[1], PLACE_HOLDERS[4]],
+            PLACE_HOLDERS[8]: [PLACE_HOLDERS[2], PLACE_HOLDERS[6]],
+            PLACE_HOLDERS[9]: [PLACE_HOLDERS[3], PLACE_HOLDERS[5]],
+        }
         self.selected_piece = None
 
     def get_adjacent_positions(self, position):
         return self.adjacent_positions[position]
 
     def is_jump_valid(self, pos1, pos2):
-        for axis in self.axes:
-            if pos1 in axis and pos2 in axis:
-                return True
-        return False
+        return pos2 in self.jumping_positions[pos1]
 
     def add_piece(self, piece):
         self.pieces.append(piece)
 
     def is_move_valid(self, piece, new_position):
+        global captured_crows
         # Check if new_position is within the placeholders
         if new_position not in PLACE_HOLDERS:
             return False
@@ -90,15 +100,18 @@ class GameBoard:
                 return True
             # Jump check
             else:
-                return self.is_jump_valid(piece.position, new_position)
-
-    def capture_piece(self, piece, new_position):
-        # Identify the crow between the vulture's current and new position, then remove it
-        for p in self.pieces:
-            if p.position == self.get_jump_over_position(piece.position, new_position) and p.piece_type == 0:
-                self.pieces.remove(p)
-                return True
-        return False
+                if self.is_jump_valid(piece.position, new_position):
+                    # check if there is a crow adjacent to piece.position and new_position
+                    for p in self.pieces:
+                        adj1 = self.get_adjacent_positions(piece.position)
+                        adj2 = self.get_adjacent_positions(new_position)
+                        if p.position in adj1 and p.position in adj2 and p.piece_type == 0:
+                            self.pieces.remove(p)
+                            captured_crows += 1
+                            return True                                                        
+                    return False
+            return False
+        
 
     def is_vulture_trapped(self):
         vulture_piece = next((p for p in self.pieces if p.piece_type == 1), None)
@@ -125,7 +138,12 @@ class Game:
         self.crows_left = 7
         self.vulture_placed = False
 
+    def is_occupied(self, position):
+        return position in [p.position for p in self.board.pieces]
+
     def place_piece(self, position):
+        if self.is_occupied(position):
+            return
         if self.turn == 0 and self.crows_left > 0:
             self.board.add_piece(GamePiece(0, position))
             self.crows_left -= 1
@@ -135,14 +153,16 @@ class Game:
         self.turn = (self.turn + 1) % 2
 
     def move_piece(self, piece, new_position):
-        if self.board.is_move_valid(piece, new_position):
+        if game.turn == 1 and self.board.is_move_valid(piece, new_position):
             if piece.piece_type == 1:  # Vulture
-                if self.board.capture_piece(piece, new_position):
-                    piece.move(new_position)
-                    self.update_game()
-                    return True
-            else:  # Crow
                 piece.move(new_position)
+                self.turn ^= 1
+                self.update_game()
+                return True
+        elif self.board.is_move_valid(piece, new_position):
+            if piece.piece_type == 0:
+                piece.move(new_position)
+                self.turn ^= 1
                 self.update_game()
                 return True
         return False
@@ -173,17 +193,28 @@ while True:
             exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
-            near_pos = get_near(x, y)
-            if game.crows_left == 0 and game.turn == 0 and near_pos:
-                # check if crow is there and if it's the crow's turn
-                if not game.board.selected_piece and game.turn == 0:
-                    game.board.selected_piece = near_pos
-                elif game.board.selected_piece and game.turn == 0:
-                    if game.move_piece(game.board.selected_piece, near_pos):
-                        game.board.selected_piece = None
-            elif near_pos:
-                game.place_piece(near_pos)
-
+            coord = get_near(x, y)
+            if(game.turn == 0 and game.crows_left > 0):
+                if coord:
+                    game.place_piece(coord)
+            elif game.turn == 1 and not game.vulture_placed:
+                coord = get_near(x, y)
+                if coord:
+                    game.place_piece(coord)
+            elif game.turn == 1:
+                selected_piece = next((p for p in game.board.pieces if p.piece_type == 1), None)
+                if selected_piece:
+                    if coord:
+                        game.move_piece(selected_piece, coord)
+            elif game.turn == 0 and not selected_piece and coord and game.crows_left == 0:
+                # selected piece = piece at coord
+                print(1)
+                game.board.selected_piece = next((p for p in game.board.pieces if p.position == coord), None)
+            elif game.turn == 0 and selected_piece and coord:
+                game.move_piece(selected_piece, coord)
+                game.board.selected_piece = None
+            print(game.board.selected_piece)
+            
     screen.blit(board_image, (BOARD_OFFSET_X, BOARD_OFFSET_Y))
     for i in PLACE_HOLDERS:
         pygame.draw.circle(screen, (255, 255, 255), i, 25, 5)
@@ -196,6 +227,9 @@ while True:
     for piece in game.board.pieces:
         img = crow_image if piece.piece_type == 0 else vulture_image
         blit_image(img, *piece.position)
+    if game.board.selected_piece:
+        # highlight the selected piece
+        pygame.draw.circle(screen, (0, 255, 0), game.board.selected_piece.position, 50, 5)
     win_condition = game.update_game()
     if win_condition != -1:
         print(win_condition)
@@ -209,3 +243,4 @@ while True:
 
     pygame.display.update()
     clock.tick(60)
+

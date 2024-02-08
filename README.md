@@ -121,3 +121,38 @@ This program allows you to plot the movement of a person in a 2D world based on 
 - If the measurement unit (mm or cm) is not provided, the default unit assumed is millimeters.
 - Invalid input lines or commands will be skipped, and an error message will be displayed.
 - The program uses interactive plotting, allowing you to zoom, pan, and save the plot as an image file.
+
+___
+
+# Kaooa Game
+
+This program implements the Kaooa game, also known as "Vulture and Crows," a traditional hunt game from India.
+
+## Features
+
+- Play as either the crows or the vulture.
+- Place tokens on a pentagram-shaped board and move them strategically.
+- Simple and intuitive controls using mouse clicks.
+- Visual representation of the game board and tokens using Pygame.
+- Win conditions for both the crows and the vulture.
+- Interactive gameplay with real-time updates.
+
+## Usage
+
+1. Run the program from the command line:
+
+    ```
+    python kaooa.py
+    ```
+
+2. Click on the desired position on the game board to place a token.
+3. Move the tokens strategically to outsmart your opponent.
+4. The vulture must capture at least four crows to win, while the crows must trap the vulture to win.
+
+## Note
+
+- The program uses Pygame for graphics and event handling.
+- Tokens are represented by images (crow and vulture).
+- The game board is displayed on a graphical window, and tokens are placed and moved using mouse clicks.
+- Win conditions are checked after each move, and the game ends when a win condition is met.
+

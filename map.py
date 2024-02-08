@@ -7,6 +7,7 @@ from common.clear import clear
 
 
 def main():
+    total_distance = 0
     person = Person()
 
     # checkin if cmd arguments are there
@@ -18,6 +19,7 @@ def main():
                     try:
                         distance_str, direction = line.strip().split()
                         distance = parse_distance(distance_str)
+                        total_distance += distance
                         print(f"Moving {distance}cm {direction}")
                         time.sleep(0.01)
                         person.move(distance, direction)
@@ -38,6 +40,7 @@ def main():
             try:
                 distance_str, direction = usr_input.split()
                 distance = parse_distance(distance_str)
+                total_distance += distance
                 person.move(distance, direction)
             except ValueError as e:
                 print(e)
@@ -45,7 +48,8 @@ def main():
                     "Invalid input format. Please enter distance and direction separated by a space."
                 )
 
-    plot_movement(person.x, person.y)
+    print(f"Total Distance: {total_distance:.2f} cm")
+    plot_movement(person)
 
 
 if __name__ == "__main__":

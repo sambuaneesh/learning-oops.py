@@ -1,3 +1,19 @@
+# Table of Contents
+
+- [Foreword](#foreword)
+- [Faculty Marks Directory](#faculty-marks-directory)
+  - [Features](#features)
+  - [Usage](#usage)
+  - [Note](#note)
+- [2D Person Movement Plotter](#2d-person-movement-plotter)
+  - [Features](#features-1)
+  - [Usage](#usage-1)
+  - [Note](#note-1)
+- [Kaooa Game](#kaooa-game)
+  - [Features](#features-2)
+  - [Usage](#usage-2)
+  - [Note](#note-2)
+
 # Foreword
 
 1. **Python Installation**: Make sure you have Python installed on your system. You can download and install Python from the official website: [python.org](https://www.python.org/).
@@ -122,7 +138,7 @@ This program allows you to plot the movement of a person in a 2D world based on 
 - Invalid input lines or commands will be skipped, and an error message will be displayed.
 - The program uses interactive plotting, allowing you to zoom, pan, and save the plot as an image file.
 
-___
+---
 
 # Kaooa Game
 
@@ -141,9 +157,9 @@ This program implements the Kaooa game, also known as "Vulture and Crows," a tra
 
 1. Run the program from the command line:
 
-    ```
-    python kaooa.py
-    ```
+   ```
+   python kaooa.py
+   ```
 
 2. Click on the desired position on the game board to place a token.
 3. Move the tokens strategically to outsmart your opponent.
@@ -155,4 +171,3 @@ This program implements the Kaooa game, also known as "Vulture and Crows," a tra
 - Tokens are represented by images (crow and vulture).
 - The game board is displayed on a graphical window, and tokens are placed and moved using mouse clicks.
 - Win conditions are checked after each move, and the game ends when a win condition is met.
-

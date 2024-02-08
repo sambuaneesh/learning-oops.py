@@ -1,17 +1,43 @@
 from kaooa_package.definitions import *
 
+
 class GameBoard:
     def __init__(self):
         self.pieces = []
         self.adjacent_positions = {
             PLACE_HOLDERS[0]: [PLACE_HOLDERS[2], PLACE_HOLDERS[3]],
             PLACE_HOLDERS[1]: [PLACE_HOLDERS[2], PLACE_HOLDERS[5]],
-            PLACE_HOLDERS[2]: [PLACE_HOLDERS[0], PLACE_HOLDERS[1], PLACE_HOLDERS[3], PLACE_HOLDERS[5]],
-            PLACE_HOLDERS[3]: [PLACE_HOLDERS[0], PLACE_HOLDERS[2], PLACE_HOLDERS[4], PLACE_HOLDERS[6]],
+            PLACE_HOLDERS[2]: [
+                PLACE_HOLDERS[0],
+                PLACE_HOLDERS[1],
+                PLACE_HOLDERS[3],
+                PLACE_HOLDERS[5],
+            ],
+            PLACE_HOLDERS[3]: [
+                PLACE_HOLDERS[0],
+                PLACE_HOLDERS[2],
+                PLACE_HOLDERS[4],
+                PLACE_HOLDERS[6],
+            ],
             PLACE_HOLDERS[4]: [PLACE_HOLDERS[3], PLACE_HOLDERS[6]],
-            PLACE_HOLDERS[5]: [PLACE_HOLDERS[1], PLACE_HOLDERS[2], PLACE_HOLDERS[7], PLACE_HOLDERS[8]],
-            PLACE_HOLDERS[6]: [PLACE_HOLDERS[3], PLACE_HOLDERS[4], PLACE_HOLDERS[7], PLACE_HOLDERS[9]],
-            PLACE_HOLDERS[7]: [PLACE_HOLDERS[5], PLACE_HOLDERS[6], PLACE_HOLDERS[8], PLACE_HOLDERS[9]],
+            PLACE_HOLDERS[5]: [
+                PLACE_HOLDERS[1],
+                PLACE_HOLDERS[2],
+                PLACE_HOLDERS[7],
+                PLACE_HOLDERS[8],
+            ],
+            PLACE_HOLDERS[6]: [
+                PLACE_HOLDERS[3],
+                PLACE_HOLDERS[4],
+                PLACE_HOLDERS[7],
+                PLACE_HOLDERS[9],
+            ],
+            PLACE_HOLDERS[7]: [
+                PLACE_HOLDERS[5],
+                PLACE_HOLDERS[6],
+                PLACE_HOLDERS[8],
+                PLACE_HOLDERS[9],
+            ],
             PLACE_HOLDERS[8]: [PLACE_HOLDERS[5], PLACE_HOLDERS[7]],
             PLACE_HOLDERS[9]: [PLACE_HOLDERS[6], PLACE_HOLDERS[7]],
         }
@@ -38,7 +64,7 @@ class GameBoard:
 
     def add_piece(self, piece):
         self.pieces.append(piece)
-    
+
     def remove_piece(self, piece):
         self.pieces.remove(piece)
 
@@ -61,17 +87,21 @@ class GameBoard:
                     adj1 = self.get_adjacent_positions(piece.position)
                     adj2 = self.get_adjacent_positions(new_position)
                     for p in self.pieces:
-                        if p.position in adj1 and p.position in adj2 and p.piece_type == 0:
+                        if (
+                            p.position in adj1
+                            and p.position in adj2
+                            and p.piece_type == 0
+                        ):
                             self.pieces.remove(p)
                             captured_crows += 1
-                            return True                                                        
+                            return True
                     return False
             return False
 
     def is_vulture_trapped(self):
         vulture_piece = next((p for p in self.pieces if p.piece_type == 1), None)
         if not vulture_piece:
-            return False 
+            return False
         available_positions = []
         adjacent_positions = self.get_adjacent_positions(vulture_piece.position)
         jump_positions = self.jumping_positions[vulture_piece.position]
@@ -84,7 +114,7 @@ class GameBoard:
 
     def is_win_condition_met(self):
         if captured_crows >= 4:
-            return 1 
+            return 1
         if self.is_vulture_trapped():
-            return 0 
-        return -1 
+            return 0
+        return -1

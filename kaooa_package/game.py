@@ -2,6 +2,7 @@ from kaooa_package.game_board import GameBoard
 from kaooa_package.game_piece import GamePiece
 from kaooa_package.definitions import *
 
+
 class Game:
     def __init__(self):
         self.board = GameBoard()
@@ -25,7 +26,7 @@ class Game:
 
     def move_piece(self, piece, new_position):
         if self.turn == 1 and self.board.is_move_valid(piece, new_position):
-            if piece.piece_type == 1: 
+            if piece.piece_type == 1:
                 piece.move(new_position)
                 self.turn ^= 1
                 self.update_game()

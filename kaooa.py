@@ -2,6 +2,7 @@
 
 import pygame
 
+
 class Game:
     """Class representing the main game logic."""
 
@@ -51,6 +52,7 @@ class Game:
 
 class GamePiece:
     """Class representing a game piece."""
+
     def __init__(self, piece_type, position):
         self.piece_type = piece_type
         self.position = position
@@ -63,9 +65,9 @@ class GamePiece:
         return f"Piece {self.piece_type} at {self.position}"
 
 
-
 class GameBoard:
     """Class representing the game board."""
+
     def __init__(self):
         self.pieces = []
         self.adjacent_positions = {
@@ -119,6 +121,7 @@ class GameBoard:
         }
         self.selected_piece = None
         self.occupied_positions = []
+        self.captured_crows = 0
 
     def get_adjacent_positions(self, position):
         """Get the adjacent positions of a given position."""
@@ -138,7 +141,6 @@ class GameBoard:
 
     def is_move_valid(self, piece, new_position):
         """Check if a move is valid."""
-        global captured_crows
         if new_position not in PLACE_HOLDERS:
             return False
 
@@ -162,7 +164,7 @@ class GameBoard:
                             and p.piece_type == 0
                         ):
                             self.pieces.remove(p)
-                            captured_crows += 1
+                            self.captured_crows += 1
                             return True
                     return False
             return False
@@ -184,7 +186,7 @@ class GameBoard:
 
     def is_win_condition_met(self):
         """Check if the win condition is met."""
-        if captured_crows >= 4:
+        if self.captured_crows >= 4:
             return 1
         if self.is_vulture_trapped():
             return 0
@@ -229,7 +231,6 @@ board_image = pygame.image.load(prefix + "board.png").convert_alpha()
 crow_image = pygame.image.load(prefix + "crow.png").convert_alpha()
 vulture_image = pygame.image.load(prefix + "vulture.png").convert_alpha()
 
-captured_crows = 0
 player = 0
 
 font_base = pygame.font.Font(None, 50)

@@ -150,24 +150,18 @@ class GameBoard:
         if piece.piece_type == 0:
             return new_position in self.get_adjacent_positions(piece.position)
 
-        elif piece.piece_type == 1:
+        if piece.piece_type == 1:
             if new_position in self.get_adjacent_positions(piece.position):
                 return True
-            else:
-                if self.is_jump_valid(piece.position, new_position):
-                    adj1 = self.get_adjacent_positions(piece.position)
-                    adj2 = self.get_adjacent_positions(new_position)
-                    for p in self.pieces:
-                        if (
-                            p.position in adj1
-                            and p.position in adj2
-                            and p.piece_type == 0
-                        ):
-                            self.pieces.remove(p)
-                            self.captured_crows += 1
-                            return True
-                    return False
-            return False
+            if self.is_jump_valid(piece.position, new_position):
+                adj1 = self.get_adjacent_positions(piece.position)
+                adj2 = self.get_adjacent_positions(new_position)
+                for p in self.pieces:
+                    if p.position in adj1 and p.position in adj2 and p.piece_type == 0:
+                        self.pieces.remove(p)
+                        self.captured_crows += 1
+                        return True
+        return False
 
     def is_vulture_trapped(self):
         """Check if the vulture is trapped."""

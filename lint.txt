@@ -5,14 +5,8 @@ kaooa.py:228:0: C0103: Constant name "player" doesn't conform to UPPER_CASE nami
 kaooa.py:248:29: E1101: Module 'pygame' has no 'QUIT' member (no-member)
 kaooa.py:249:16: E1101: Module 'pygame' has no 'quit' member (no-member)
 kaooa.py:250:16: R1722: Consider using 'sys.exit' instead (consider-using-sys-exit)
-kaooa.py:251:29: E1101: Module 'pygame' has no 'MOUSEBUTTONDOWN' member (no-member)
-kaooa.py:246:4: R1702: Too many nested blocks (9/5) (too-many-nested-blocks)
-kaooa.py:246:4: R1702: Too many nested blocks (8/5) (too-many-nested-blocks)
-kaooa.py:246:4: R1702: Too many nested blocks (7/5) (too-many-nested-blocks)
-kaooa.py:246:4: R1702: Too many nested blocks (6/5) (too-many-nested-blocks)
-kaooa.py:243:0: R0912: Too many branches (30/12) (too-many-branches)
-kaooa.py:243:0: R0915: Too many statements (63/50) (too-many-statements)
+kaooa.py:260:21: E1101: Module 'pygame' has no 'MOUSEBUTTONDOWN' member (no-member)
 
 ------------------------------------------------------------------
-Your code has been rated at 8.47/10 (previous run: 8.27/10, +0.20)
+Your code has been rated at 8.94/10 (previous run: 8.47/10, +0.46)
 

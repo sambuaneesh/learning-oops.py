@@ -1,9 +1,252 @@
-from kaooa_package.game import Game
-from kaooa_package.definitions import *
-from kaooa_package.functions import *
+"""Module for the Kaooa game."""
+
+import pygame
+
+class Game:
+    """Class representing the main game logic."""
+
+    def __init__(self):
+        self.board = GameBoard()
+        self.turn = 0  # 0 = crows 1 = vulture
+        self.crows_left = 7
+        self.vulture_placed = False
+
+    def is_occupied(self, position):
+        """Check if a position is occupied by a piece."""
+        return position in [p.position for p in self.board.pieces]
+
+    def place_piece(self, position):
+        """Place a piece on the board."""
+        if self.is_occupied(position):
+            return
+        if self.turn == 0 and self.crows_left > 0:
+            self.board.add_piece(GamePiece(0, position))
+            self.crows_left -= 1
+        elif self.turn == 1 and not self.vulture_placed:
+            self.board.add_piece(GamePiece(1, position))
+            self.vulture_placed = True
+        self.turn ^= 1
+
+    def move_piece(self, piece, new_position):
+        """Move a piece to a new position."""
+        if self.turn == 1 and self.board.is_move_valid(piece, new_position):
+            if piece.piece_type == 1:
+                piece.move(new_position)
+                self.turn ^= 1
+                self.update_game()
+                return True
+        elif self.board.is_move_valid(piece, new_position):
+            if piece.piece_type == 0:
+                piece.move(new_position)
+                self.turn ^= 1
+                self.update_game()
+                return True
+        return False
+
+    def update_game(self):
+        """Update the game state."""
+        win_condition = self.board.is_win_condition_met()
+        return win_condition
+
+
+class GamePiece:
+    """Class representing a game piece."""
+    def __init__(self, piece_type, position):
+        self.piece_type = piece_type
+        self.position = position
+
+    def move(self, new_position):
+        """Move the piece to a new position."""
+        self.position = new_position
+
+    def __repr__(self):
+        return f"Piece {self.piece_type} at {self.position}"
+
+
+
+class GameBoard:
+    """Class representing the game board."""
+    def __init__(self):
+        self.pieces = []
+        self.adjacent_positions = {
+            PLACE_HOLDERS[0]: [PLACE_HOLDERS[2], PLACE_HOLDERS[3]],
+            PLACE_HOLDERS[1]: [PLACE_HOLDERS[2], PLACE_HOLDERS[5]],
+            PLACE_HOLDERS[2]: [
+                PLACE_HOLDERS[0],
+                PLACE_HOLDERS[1],
+                PLACE_HOLDERS[3],
+                PLACE_HOLDERS[5],
+            ],
+            PLACE_HOLDERS[3]: [
+                PLACE_HOLDERS[0],
+                PLACE_HOLDERS[2],
+                PLACE_HOLDERS[4],
+                PLACE_HOLDERS[6],
+            ],
+            PLACE_HOLDERS[4]: [PLACE_HOLDERS[3], PLACE_HOLDERS[6]],
+            PLACE_HOLDERS[5]: [
+                PLACE_HOLDERS[1],
+                PLACE_HOLDERS[2],
+                PLACE_HOLDERS[7],
+                PLACE_HOLDERS[8],
+            ],
+            PLACE_HOLDERS[6]: [
+                PLACE_HOLDERS[3],
+                PLACE_HOLDERS[4],
+                PLACE_HOLDERS[7],
+                PLACE_HOLDERS[9],
+            ],
+            PLACE_HOLDERS[7]: [
+                PLACE_HOLDERS[5],
+                PLACE_HOLDERS[6],
+                PLACE_HOLDERS[8],
+                PLACE_HOLDERS[9],
+            ],
+            PLACE_HOLDERS[8]: [PLACE_HOLDERS[5], PLACE_HOLDERS[7]],
+            PLACE_HOLDERS[9]: [PLACE_HOLDERS[6], PLACE_HOLDERS[7]],
+        }
+        self.jumping_positions = {
+            PLACE_HOLDERS[0]: [PLACE_HOLDERS[5], PLACE_HOLDERS[6]],
+            PLACE_HOLDERS[1]: [PLACE_HOLDERS[3], PLACE_HOLDERS[7]],
+            PLACE_HOLDERS[2]: [PLACE_HOLDERS[4], PLACE_HOLDERS[8]],
+            PLACE_HOLDERS[3]: [PLACE_HOLDERS[1], PLACE_HOLDERS[9]],
+            PLACE_HOLDERS[4]: [PLACE_HOLDERS[2], PLACE_HOLDERS[7]],
+            PLACE_HOLDERS[5]: [PLACE_HOLDERS[0], PLACE_HOLDERS[9]],
+            PLACE_HOLDERS[6]: [PLACE_HOLDERS[8], PLACE_HOLDERS[0]],
+            PLACE_HOLDERS[7]: [PLACE_HOLDERS[1], PLACE_HOLDERS[4]],
+            PLACE_HOLDERS[8]: [PLACE_HOLDERS[2], PLACE_HOLDERS[6]],
+            PLACE_HOLDERS[9]: [PLACE_HOLDERS[3], PLACE_HOLDERS[5]],
+        }
+        self.selected_piece = None
+        self.occupied_positions = []
+
+    def get_adjacent_positions(self, position):
+        """Get the adjacent positions of a given position."""
+        return self.adjacent_positions[position]
+
+    def is_jump_valid(self, pos1, pos2):
+        """Check if a jump is valid."""
+        return pos2 in self.jumping_positions[pos1]
+
+    def add_piece(self, piece):
+        """Add a piece to the board."""
+        self.pieces.append(piece)
+
+    def remove_piece(self, piece):
+        """Remove a piece from the board."""
+        self.pieces.remove(piece)
+
+    def is_move_valid(self, piece, new_position):
+        """Check if a move is valid."""
+        global captured_crows
+        if new_position not in PLACE_HOLDERS:
+            return False
+
+        if new_position in [p.position for p in self.pieces]:
+            return False
+
+        if piece.piece_type == 0:
+            return new_position in self.get_adjacent_positions(piece.position)
+
+        elif piece.piece_type == 1:
+            if new_position in self.get_adjacent_positions(piece.position):
+                return True
+            else:
+                if self.is_jump_valid(piece.position, new_position):
+                    adj1 = self.get_adjacent_positions(piece.position)
+                    adj2 = self.get_adjacent_positions(new_position)
+                    for p in self.pieces:
+                        if (
+                            p.position in adj1
+                            and p.position in adj2
+                            and p.piece_type == 0
+                        ):
+                            self.pieces.remove(p)
+                            captured_crows += 1
+                            return True
+                    return False
+            return False
+
+    def is_vulture_trapped(self):
+        """Check if the vulture is trapped."""
+        vulture_piece = next((p for p in self.pieces if p.piece_type == 1), None)
+        if not vulture_piece:
+            return False
+        available_positions = []
+        adjacent_positions = self.get_adjacent_positions(vulture_piece.position)
+        jump_positions = self.jumping_positions[vulture_piece.position]
+        available_positions.extend(adjacent_positions)
+        available_positions.extend(jump_positions)
+        for pos in available_positions:
+            if pos not in [p.position for p in self.pieces]:
+                return False  # Vulture has at least one valid move
+        return True  # No valid moves found
+
+    def is_win_condition_met(self):
+        """Check if the win condition is met."""
+        if captured_crows >= 4:
+            return 1
+        if self.is_vulture_trapped():
+            return 0
+        return -1
+
+
+def get_near(x, y):
+    """Get the nearest placeholder to a given position."""
+    for pos in PLACE_HOLDERS:
+        if ((pos[0] - x) ** 2 + (pos[1] - y) ** 2) ** 0.5 < 50:
+            return pos
+    return None
+
+
+def blit_image(image, x, y):
+    """Blit an image to the screen."""
+    screen.blit(image, (x - 75, y - 75))
+
+
+prefix = "kaooa_package/assets/"
+WIDTH, HEIGHT = 800, 800
+
+PLACE_HOLDERS = [
+    (398, 87),
+    (100, 291),
+    (321, 298),
+    (478, 298),
+    (696, 292),
+    (277, 416),
+    (522, 416),
+    (399, 497),
+    (191, 623),
+    (602, 619),
+]
+
+pygame.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Kaooa Game")
+clock = pygame.time.Clock()
+
+board_image = pygame.image.load(prefix + "board.png").convert_alpha()
+crow_image = pygame.image.load(prefix + "crow.png").convert_alpha()
+vulture_image = pygame.image.load(prefix + "vulture.png").convert_alpha()
+
+captured_crows = 0
+player = 0
+
+font_base = pygame.font.Font(None, 50)
+font = pygame.font.Font(None, 50)
+
+crow_text = font.render("Crows Turn", True, (255, 255, 255))
+crow_text_base = font_base.render("Crows Turn", True, (0, 0, 0))
+
+vulture_text = font.render("Vulture Turn", True, (255, 255, 255))
+vulture_text_base = font_base.render("Vulture Turn", True, (0, 0, 0))
+
+crow_win = pygame.font.Font(None, 100).render("Crows Win", True, (255, 255, 255))
+vulture_win = pygame.font.Font(None, 100).render("Vulture Wins", True, (255, 255, 255))
 
 
 def main():
+    """Main function for the game."""
     game = Game()
     while True:
         for event in pygame.event.get():

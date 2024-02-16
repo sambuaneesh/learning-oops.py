@@ -1,6 +1,10 @@
+"""Module for the Kaooa game."""
+
 import pygame
 
 class Game:
+    """Class representing the main game logic."""
+
     def __init__(self):
         self.board = GameBoard()
         self.turn = 0  # 0 = crows 1 = vulture
@@ -8,9 +12,11 @@ class Game:
         self.vulture_placed = False
 
     def is_occupied(self, position):
+        """Check if a position is occupied by a piece."""
         return position in [p.position for p in self.board.pieces]
 
     def place_piece(self, position):
+        """Place a piece on the board."""
         if self.is_occupied(position):
             return
         if self.turn == 0 and self.crows_left > 0:
@@ -22,6 +28,7 @@ class Game:
         self.turn ^= 1
 
     def move_piece(self, piece, new_position):
+        """Move a piece to a new position."""
         if self.turn == 1 and self.board.is_move_valid(piece, new_position):
             if piece.piece_type == 1:
                 piece.move(new_position)
@@ -37,20 +44,28 @@ class Game:
         return False
 
     def update_game(self):
+        """Update the game state."""
         win_condition = self.board.is_win_condition_met()
         return win_condition
 
 
 class GamePiece:
+    """Class representing a game piece."""
     def __init__(self, piece_type, position):
         self.piece_type = piece_type
         self.position = position
 
     def move(self, new_position):
+        """Move the piece to a new position."""
         self.position = new_position
+
+    def __repr__(self):
+        return f"Piece {self.piece_type} at {self.position}"
+
 
 
 class GameBoard:
+    """Class representing the game board."""
     def __init__(self):
         self.pieces = []
         self.adjacent_positions = {
@@ -106,18 +121,23 @@ class GameBoard:
         self.occupied_positions = []
 
     def get_adjacent_positions(self, position):
+        """Get the adjacent positions of a given position."""
         return self.adjacent_positions[position]
 
     def is_jump_valid(self, pos1, pos2):
+        """Check if a jump is valid."""
         return pos2 in self.jumping_positions[pos1]
 
     def add_piece(self, piece):
+        """Add a piece to the board."""
         self.pieces.append(piece)
 
     def remove_piece(self, piece):
+        """Remove a piece from the board."""
         self.pieces.remove(piece)
 
     def is_move_valid(self, piece, new_position):
+        """Check if a move is valid."""
         global captured_crows
         if new_position not in PLACE_HOLDERS:
             return False
@@ -148,6 +168,7 @@ class GameBoard:
             return False
 
     def is_vulture_trapped(self):
+        """Check if the vulture is trapped."""
         vulture_piece = next((p for p in self.pieces if p.piece_type == 1), None)
         if not vulture_piece:
             return False
@@ -162,6 +183,7 @@ class GameBoard:
         return True  # No valid moves found
 
     def is_win_condition_met(self):
+        """Check if the win condition is met."""
         if captured_crows >= 4:
             return 1
         if self.is_vulture_trapped():
@@ -170,6 +192,7 @@ class GameBoard:
 
 
 def get_near(x, y):
+    """Get the nearest placeholder to a given position."""
     for pos in PLACE_HOLDERS:
         if ((pos[0] - x) ** 2 + (pos[1] - y) ** 2) ** 0.5 < 50:
             return pos
@@ -177,6 +200,7 @@ def get_near(x, y):
 
 
 def blit_image(image, x, y):
+    """Blit an image to the screen."""
     screen.blit(image, (x - 75, y - 75))
 
 
@@ -222,6 +246,7 @@ vulture_win = pygame.font.Font(None, 100).render("Vulture Wins", True, (255, 255
 
 
 def main():
+    """Main function for the game."""
     game = Game()
     while True:
         for event in pygame.event.get():

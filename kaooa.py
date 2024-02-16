@@ -1,6 +1,30 @@
 """Module for the Kaooa game."""
 
+import sys
 import pygame
+
+# Globals
+
+SCREEN = None
+CLOCK = None
+
+BOARD_IMAGE = None
+CROW_IMAGE = None
+VULTURE_IMAGE = None
+
+PLAYER = 0
+
+FONT_BASE = None
+FONT = None
+
+CROW_TEXT = None
+CROW_TEXT_BASE = None
+
+VULTURE_TEXT = None
+VULTURE_TEXT_BASE = None
+
+CROW_WIN = None
+VULTURE_WIN = None
 
 
 class Game:
@@ -187,20 +211,20 @@ class GameBoard:
         return -1
 
 
-def get_near(x, y):
+def get_near(x_cor, y_cor):
     """Get the nearest placeholder to a given position."""
     for pos in PLACE_HOLDERS:
-        if ((pos[0] - x) ** 2 + (pos[1] - y) ** 2) ** 0.5 < 50:
+        if ((pos[0] - x_cor) ** 2 + (pos[1] - y_cor) ** 2) ** 0.5 < 50:
             return pos
     return None
 
 
-def blit_image(image, x, y):
+def blit_image(image, x_cor, y_cor):
     """Blit an image to the screen."""
-    screen.blit(image, (x - 75, y - 75))
+    SCREEN.blit(image, (x_cor - 75, y_cor - 75))
 
 
-prefix = "kaooa_package/assets/"
+PREFIX = "kaooa_package/assets/"
 WIDTH, HEIGHT = 800, 800
 
 PLACE_HOLDERS = [
@@ -216,172 +240,168 @@ PLACE_HOLDERS = [
     (602, 619),
 ]
 
-pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Kaooa Game")
-clock = pygame.time.Clock()
-
-board_image = pygame.image.load(prefix + "board.png").convert_alpha()
-crow_image = pygame.image.load(prefix + "crow.png").convert_alpha()
-vulture_image = pygame.image.load(prefix + "vulture.png").convert_alpha()
-
-player = 0
-
-font_base = pygame.font.Font(None, 50)
-font = pygame.font.Font(None, 50)
-
-crow_text = font.render("Crows Turn", True, (255, 255, 255))
-crow_text_base = font_base.render("Crows Turn", True, (0, 0, 0))
-
-vulture_text = font.render("Vulture Turn", True, (255, 255, 255))
-vulture_text_base = font_base.render("Vulture Turn", True, (0, 0, 0))
-
-crow_win = pygame.font.Font(None, 100).render("Crows Win", True, (255, 255, 255))
-vulture_win = pygame.font.Font(None, 100).render("Vulture Wins", True, (255, 255, 255))
-
-
-def main():
-    """Main function for the game."""
-    game = Game()
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-            handle_mouse_event(event, game)
-
-        render_game_screen(game)
-        pygame.display.update()
-        clock.tick(10)
-
-
-def handle_mouse_event(event, game):
-    """Handle mouse events."""
-    if event.type == pygame.MOUSEBUTTONDOWN:
-        x, y = pygame.mouse.get_pos()
-        coord = get_near(x, y)
-        if coord:
-            handle_mouse_click(coord, game)
-
-
-def handle_mouse_click(coord, game):
+def handle_mouse_click(coordinates, game_instance):
     """Handle mouse click."""
-    if game.turn == 0:
-        handle_crows_turn(coord, game)
+    if game_instance.turn == 0:
+        handle_crows_turn(coordinates, game_instance)
     else:
-        handle_vulture_turn(coord, game)
+        handle_vulture_turn(coordinates, game_instance)
 
 
-def handle_crows_turn(coord, game):
+def handle_crows_turn(coordinates, game_instance):
     """Handle crows turn."""
-    if game.crows_left > 0:
-        game.place_piece(coord)
-    elif not game.board.selected_piece and game.turn == 0:
-        handle_crow_selection(coord, game)
+    if game_instance.crows_left > 0:
+        game_instance.place_piece(coordinates)
+    elif not game_instance.board.selected_piece and game_instance.turn == 0:
+        handle_crow_selection(coordinates, game_instance)
     else:
-        handle_piece_move(game.board.selected_piece, coord, game)
+        handle_piece_move(game_instance.board.selected_piece, coordinates, game_instance)
 
 
-def handle_crow_selection(coord, game):
+def handle_crow_selection(coordinates, game_instance):
     """Handle crow selection."""
-    piece = next((p for p in game.board.pieces if p.position == coord), None)
+    piece = next((p for p in game_instance.board.pieces if p.position == coordinates), None)
     if piece and piece.piece_type == 0:
-        adjacent_positions = game.board.get_adjacent_positions(piece.position)
-        occupied = sum(1 for position in adjacent_positions if game.is_occupied(position))
+        adjacent_positions = game_instance.board.get_adjacent_positions(piece.position)
+        occupied = sum(
+            1 for position in adjacent_positions if game_instance.is_occupied(position)
+        )
         if len(adjacent_positions) - occupied > 0:
-            game.board.selected_piece = piece
+            game_instance.board.selected_piece = piece
         else:
-            game.board.selected_piece = None
+            game_instance.board.selected_piece = None
     else:
-        game.board.selected_piece = None
+        game_instance.board.selected_piece = None
 
 
-def handle_vulture_turn(coord, game):
+def handle_vulture_turn(coordinates, game_instance):
     """Handle vulture turn."""
-    if not game.vulture_placed:
-        game.place_piece(coord)
+    if not game_instance.vulture_placed:
+        game_instance.place_piece(coordinates)
     else:
-        vulture = next((p for p in game.board.pieces if p.piece_type == 1), None)
+        vulture = next((p for p in game_instance.board.pieces if p.piece_type == 1), None)
         if vulture:
-            handle_piece_move(vulture, coord, game)
+            handle_piece_move(vulture, coordinates, game_instance)
 
 
-def handle_piece_move(piece, coord, game):
+def handle_piece_move(piece, coordinates, game_instance):
     """Handle piece move."""
-    if game.move_piece(piece, coord):
-        game.board.selected_piece = None
+    if game_instance.move_piece(piece, coordinates):
+        game_instance.board.selected_piece = None
 
 
-def render_game_screen(game):
+def render_game_screen(game_instance):
     """Render the game screen."""
-    screen.blit(board_image, (0, 0))
-    render_place_holders(game)
-    render_turn_indicator(game)
-    render_game_pieces(game)
-    render_selected_piece(game)
-    render_win_condition(game)
+    SCREEN.blit(BOARD_IMAGE, (0, 0))
+    render_place_holders(game_instance)
+    render_turn_indicator(game_instance)
+    render_game_pieces(game_instance)
+    render_selected_piece(game_instance)
+    render_win_condition(game_instance)
 
 
-def render_place_holders(game):
+def render_place_holders(game_inst):
     """Render the place holders."""
     for i in PLACE_HOLDERS:
-        if game.crows_left > 0 and game.turn == 0 or not game.vulture_placed:
-            pygame.draw.circle(screen, (0, 255, 0), i, 25, 5)
+        if game_inst.crows_left > 0 and game_inst.turn == 0 or not game_inst.vulture_placed:
+            pygame.draw.circle(SCREEN, (0, 255, 0), i, 25, 5)
         else:
-            pygame.draw.circle(screen, (255, 255, 255), i, 25, 5)
+            pygame.draw.circle(SCREEN, (255, 255, 255), i, 25, 5)
 
 
-def render_turn_indicator(game):
+def render_turn_indicator(game_instance):
     """Render the turn indicator."""
-    if game.turn == 0:
-        screen.blit(crow_text_base, (8, 15))
-        screen.blit(crow_text, (10, 10))
-        highlight_crows(game)
+    if game_instance.turn == 0:
+        SCREEN.blit(CROW_TEXT_BASE, (8, 15))
+        SCREEN.blit(CROW_TEXT, (10, 10))
+        highlight_crows(game_instance)
     else:
-        screen.blit(vulture_text_base, (8, 15))
-        screen.blit(vulture_text, (10, 10))
-        highlight_vulture(game)
+        SCREEN.blit(VULTURE_TEXT_BASE, (8, 15))
+        SCREEN.blit(VULTURE_TEXT, (10, 10))
+        highlight_vulture(game_instance)
 
 
-def highlight_crows(game):
+def highlight_crows(game_instance):
     """Highlight crows."""
-    if not game.board.selected_piece and game.crows_left == 0:
-        for piece in game.board.pieces:
+    if not game_instance.board.selected_piece and game_instance.crows_left == 0:
+        for piece in game_instance.board.pieces:
             if piece.piece_type == 0:
-                pygame.draw.circle(screen, (143, 0, 255), piece.position, 47, 7)
+                pygame.draw.circle(SCREEN, (143, 0, 255), piece.position, 47, 7)
 
 
-def highlight_vulture(game):
+def highlight_vulture(game_instance):
     """Highlight vulture."""
-    vulture = next((p for p in game.board.pieces if p.piece_type == 1), None)
+    vulture = next((p for p in game_instance.board.pieces if p.piece_type == 1), None)
     if vulture:
-        pygame.draw.circle(screen, (0, 255, 0), vulture.position, 50, 5)
+        pygame.draw.circle(SCREEN, (0, 255, 0), vulture.position, 50, 5)
 
 
-def render_game_pieces(game):
+def render_game_pieces(game_instance):
     """Render the game pieces."""
-    for piece in game.board.pieces:
-        img = crow_image if piece.piece_type == 0 else vulture_image
+    for piece in game_instance.board.pieces:
+        img = CROW_IMAGE if piece.piece_type == 0 else VULTURE_IMAGE
         blit_image(img, *piece.position)
 
 
-def render_selected_piece(game):
+def render_selected_piece(game_instance):
     """Render the selected piece."""
-    if game.board.selected_piece:
-        pygame.draw.circle(screen, (0, 255, 0), game.board.selected_piece.position, 47, 5)
+    if game_instance.board.selected_piece:
+        pygame.draw.circle(
+            SCREEN, (0, 255, 0), game_instance.board.selected_piece.position, 47, 5
+        )
 
 
-def render_win_condition(game):
+def render_win_condition(game_instance):
     """Render the win condition."""
-    win_condition = game.update_game()
+    win_condition = game_instance.update_game()
     if win_condition != -1:
-        screen.fill((0, 0, 0))
+        SCREEN.fill((0, 0, 0))
         if win_condition == 0:
-            blit_image(crow_image, 120, HEIGHT // 2 + 25)
-            screen.blit(crow_win, (175, HEIGHT // 2))
+            blit_image(CROW_IMAGE, 120, HEIGHT // 2 + 25)
+            SCREEN.blit(CROW_WIN, (175, HEIGHT // 2))
         else:
-            blit_image(vulture_image, 120, HEIGHT // 2 + 25)
-            screen.blit(vulture_win, (175, HEIGHT // 2))
+            blit_image(VULTURE_IMAGE, 120, HEIGHT // 2 + 25)
+            SCREEN.blit(VULTURE_WIN, (175, HEIGHT // 2))
+
 
 if __name__ == "__main__":
-    main()
+    pygame.init()
+    game = Game()
+
+    SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Kaooa Game")
+    CLOCK = pygame.time.Clock()
+
+    BOARD_IMAGE = pygame.image.load(PREFIX + "board.png").convert_alpha()
+    CROW_IMAGE = pygame.image.load(PREFIX + "crow.png").convert_alpha()
+    VULTURE_IMAGE = pygame.image.load(PREFIX + "vulture.png").convert_alpha()
+
+    PLAYER = 0
+
+    FONT_BASE = pygame.font.Font(None, 50)
+    FONT = pygame.font.Font(None, 50)
+
+    CROW_TEXT = FONT.render("Crows Turn", True, (255, 255, 255))
+    CROW_TEXT_BASE = FONT_BASE.render("Crows Turn", True, (0, 0, 0))
+
+    VULTURE_TEXT = FONT.render("Vulture Turn", True, (255, 255, 255))
+    VULTURE_TEXT_BASE = FONT_BASE.render("Vulture Turn", True, (0, 0, 0))
+
+    CROW_WIN = pygame.font.Font(None, 100).render("Crows Win", True, (255, 255, 255))
+    VULTURE_WIN = pygame.font.Font(None, 100).render(
+        "Vulture Wins", True, (255, 255, 255)
+    )
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = pygame.mouse.get_pos()
+                coord = get_near(x, y)
+                if coord:
+                    handle_mouse_click(coord, game)
+
+        render_game_screen(game)
+        pygame.display.update()
+        CLOCK.tick(10)

@@ -1,12 +1,4 @@
-************* Module kaooa
-kaooa.py:203:0: C0103: Constant name "prefix" doesn't conform to UPPER_CASE naming style (invalid-name)
-kaooa.py:219:0: E1101: Module 'pygame' has no 'init' member (no-member)
-kaooa.py:228:0: C0103: Constant name "player" doesn't conform to UPPER_CASE naming style (invalid-name)
-kaooa.py:248:29: E1101: Module 'pygame' has no 'QUIT' member (no-member)
-kaooa.py:249:16: E1101: Module 'pygame' has no 'quit' member (no-member)
-kaooa.py:250:16: R1722: Consider using 'sys.exit' instead (consider-using-sys-exit)
-kaooa.py:260:21: E1101: Module 'pygame' has no 'MOUSEBUTTONDOWN' member (no-member)
 
-------------------------------------------------------------------
-Your code has been rated at 8.94/10 (previous run: 8.47/10, +0.46)
+--------------------------------------------------------------------
+Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
 
